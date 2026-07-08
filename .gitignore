@@ -1,0 +1,4 @@
+# Ignore large binaries
+*.exe
+node_modules/
+.env
