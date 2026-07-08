@@ -15,6 +15,7 @@ import CustomCursor from './components/CustomCursor';
 import RegistrationBanner from './components/RegistrationBanner';
 import Footer from './components/Footer';
 import RegistrationPage from './components/RegistrationPage';
+import RegistrationSuccess from './components/RegistrationSuccess';
 import AdminDashboard from './components/AdminDashboard';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -31,7 +32,7 @@ function ScrollToTop() {
 
 function ConditionalNavigation() {
   const location = useLocation();
-  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/register')) {
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/register') || location.pathname.startsWith('/registration-success')) {
     return null;
   }
   return <Navigation />;
@@ -80,6 +81,12 @@ function App() {
             <main>
               <RegistrationPage />
               <Footer />
+            </main>
+          } />
+
+          <Route path="/registration-success" element={
+            <main>
+              <RegistrationSuccess />
             </main>
           } />
           

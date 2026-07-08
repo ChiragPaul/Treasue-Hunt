@@ -399,3 +399,179 @@ section::after {
     display: none !important;
   }
 }
+
+/* --- REGISTRATION SUCCESS PAGE --- */
+
+.registration-success-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+  position: relative;
+  z-index: 100;
+  background-color: var(--color-bg);
+  background-image: radial-gradient(#111 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.success-content {
+  max-width: 800px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.success-header h1 {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
+.team-info {
+  display: flex;
+  justify-content: space-around;
+  border: 1px solid var(--color-accent);
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.info-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.info-label {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--color-accent);
+  margin-bottom: 0.5rem;
+}
+
+.info-value {
+  font-family: var(--font-sans);
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.members-roster {
+  margin-top: 1rem;
+}
+
+.roster-title {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  border-bottom: 1px solid var(--color-accent);
+  padding-bottom: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.members-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding: 1rem;
+  border-left: 2px solid var(--color-accent);
+  background: linear-gradient(90deg, rgba(155,168,168,0.1) 0%, transparent 100%);
+}
+
+.dotted-profile {
+  opacity: 0.8;
+}
+
+.member-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.member-name {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--color-text);
+}
+
+.member-role {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: var(--color-accent);
+  margin-top: 0.2rem;
+}
+
+.rules-reminder {
+  border: 2px solid #cc0000;
+  background: rgba(204, 0, 0, 0.1);
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.warning-icon {
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg);
+  padding: 0 1rem;
+  color: #cc0000;
+  font-weight: bold;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+}
+
+.rules-title {
+  color: #cc0000;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.rules-text {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #ffcccc;
+}
+
+.btn-return {
+  align-self: center;
+  background: transparent;
+  color: var(--color-text);
+  border: 1px solid var(--color-text);
+  padding: 1rem 2rem;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+}
+
+.btn-return:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+@media (max-width: 768px) {
+  .team-info {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  .success-header h1 {
+    font-size: 2rem;
+  }
+  .member-name {
+    font-size: 1.2rem;
+  }
+}

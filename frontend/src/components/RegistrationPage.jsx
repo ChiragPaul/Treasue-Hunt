@@ -170,8 +170,7 @@ const RegistrationPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert('DOCUMENT SEALED. Clearance granted for Unit: ' + data.team.teamNumber);
-        navigate('/');
+        navigate('/registration-success', { state: { team: data.team } });
       } else {
         setError(data.msg || 'Clearance denial.');
       }
