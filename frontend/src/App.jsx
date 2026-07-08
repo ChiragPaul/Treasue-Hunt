@@ -31,7 +31,7 @@ function ScrollToTop() {
 
 function ConditionalNavigation() {
   const location = useLocation();
-  if (location.pathname.startsWith('/admin')) {
+  if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/register')) {
     return null;
   }
   return <Navigation />;

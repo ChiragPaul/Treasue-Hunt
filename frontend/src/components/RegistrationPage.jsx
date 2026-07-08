@@ -63,7 +63,7 @@ const RegistrationPage = () => {
     try {
       if (step === 1) {
         if (!teamName.trim()) {
-          setError('Team name is required');
+          setError('Research Unit Identifier is required');
           setIsSubmitting(false);
           return;
         }
@@ -85,19 +85,19 @@ const RegistrationPage = () => {
         const member = members[memberIndex];
         
         if (!member.registerNumber || !member.name || !member.email || !member.contactNumber) {
-          setError('All fields are required.');
+          setError('All fields in this section are mandatory.');
           setIsSubmitting(false);
           return;
         }
 
         if (!validateEmail(member.email)) {
-          setError('Please enter a valid email address.');
+          setError('Invalid email format detected.');
           setIsSubmitting(false);
           return;
         }
 
         if (!validatePhone(member.contactNumber)) {
-          setError('Please enter a valid contact number (10-15 digits).');
+          setError('Invalid contact number format detected.');
           setIsSubmitting(false);
           return;
         }
@@ -105,17 +105,17 @@ const RegistrationPage = () => {
         // Validate duplicates within the form
         for (let i = 0; i < memberIndex; i++) {
           if (members[i].registerNumber.toLowerCase() === member.registerNumber.toLowerCase()) {
-            setError(`Register number already used by Operative 0${i + 1}`);
+            setError(`Subject ID already assigned to Bio-Asset 0${i + 1}`);
             setIsSubmitting(false);
             return;
           }
           if (members[i].email.toLowerCase() === member.email.toLowerCase()) {
-            setError(`Email already used by Operative 0${i + 1}`);
+            setError(`Email already assigned to Bio-Asset 0${i + 1}`);
             setIsSubmitting(false);
             return;
           }
           if (members[i].contactNumber === member.contactNumber) {
-            setError(`Contact number already used by Operative 0${i + 1}`);
+            setError(`Contact number already assigned to Bio-Asset 0${i + 1}`);
             setIsSubmitting(false);
             return;
           }
@@ -138,7 +138,7 @@ const RegistrationPage = () => {
       setStep(step + 1);
     } catch (err) {
       console.error(err);
-      setError('Network error during validation.');
+      setError('Communication error with secure server.');
     } finally {
       setIsSubmitting(false);
     }
@@ -170,14 +170,14 @@ const RegistrationPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert('Transmission sent. Registration successful! Team Number: ' + data.team.teamNumber);
+        alert('DOCUMENT SEALED. Clearance granted for Unit: ' + data.team.teamNumber);
         navigate('/');
       } else {
-        setError(data.msg || 'Registration failed.');
+        setError(data.msg || 'Clearance denial.');
       }
     } catch (err) {
       console.error(err);
-      setError('Network error. Unable to reach the server.');
+      setError('Network failure. Document not saved.');
     } finally {
       setIsSubmitting(false);
     }
@@ -188,13 +188,13 @@ const RegistrationPage = () => {
     if (!member) return null;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', animation: 'fadeIn 0.5s ease' }}>
-        <h3 style={{ color: 'rgba(57, 255, 20, 0.9)', fontFamily: 'var(--font-mono)', marginBottom: '1rem' }}>
-          OPERATIVE 0{index + 1} DETAILS
+      <div className="form-section fade-in">
+        <h3 className="section-title">
+          SECTION {index + 2}: BIO-ASSET 0{index + 1} IDENTIFICATION
         </h3>
         
-        <div className="input-group">
-          <label>&gt; REGISTER NUMBER_</label>
+        <div className="input-row">
+          <label>SUBJECT ID (REG NUMBER):</label>
           <input 
             type="text" 
             required
@@ -204,8 +204,8 @@ const RegistrationPage = () => {
           />
         </div>
 
-        <div className="input-group">
-          <label>&gt; FULL NAME_</label>
+        <div className="input-row">
+          <label>FULL DESIGNATION (NAME):</label>
           <input 
             type="text" 
             required
@@ -214,41 +214,57 @@ const RegistrationPage = () => {
           />
         </div>
 
-        <div className="input-group">
-          <label>&gt; YEAR OF GRADUATION_</label>
-          <input 
-            type="number" 
+        <div className="input-row">
+          <label>YEAR OF DEPLOYMENT (GRADUATION):</label>
+          <select 
             required
             value={member.yearOfGraduation}
             onChange={(e) => handleMemberChange(index, 'yearOfGraduation', e.target.value)}
-            placeholder="e.g. 2024"
-          />
+            className="doc-select-underline"
+          >
+            <option value="" disabled>Select Year</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+            <option value="2028">2028</option>
+            <option value="2029">2029</option>
+            <option value="2030">2030</option>
+          </select>
         </div>
 
-        <div className="input-group">
-          <label>&gt; COURSE_</label>
-          <input 
-            type="text" 
-            required
-            value={member.course}
-            onChange={(e) => handleMemberChange(index, 'course', e.target.value)}
-            placeholder="e.g. B.Tech"
-          />
+        <div className="input-row">
+          <label>TRAINING COURSE:</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0', fontFamily: 'Courier New, monospace', fontSize: '1.2rem', minHeight: '36px' }}>
+            {!member.course ? (
+              <>
+                <span style={{ cursor: 'pointer', color: '#666', borderBottom: '1px dashed #666', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#000'} onMouseLeave={(e) => e.target.style.color = '#666'} onClick={() => handleMemberChange(index, 'course', 'B.Tech')}>B.Tech</span>
+                <span style={{ color: '#666' }}>/</span>
+                <span style={{ cursor: 'pointer', color: '#666', borderBottom: '1px dashed #666', transition: 'color 0.2s' }} onMouseEnter={(e) => e.target.style.color = '#000'} onMouseLeave={(e) => e.target.style.color = '#666'} onClick={() => handleMemberChange(index, 'course', 'M.Tech')}>M.Tech</span>
+              </>
+            ) : (
+              <span 
+                style={{ cursor: 'pointer', color: '#cc0000', fontWeight: 'bold', borderBottom: '2px solid #cc0000' }} 
+                onClick={() => handleMemberChange(index, 'course', '')}
+                title="Click to change selection"
+              >
+                {member.course}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="input-group">
-          <label>&gt; SPECIALIZATION_</label>
+        <div className="input-row">
+          <label>SPECIALTY EXPERTISE:</label>
           <input 
             type="text" 
             required
             value={member.specialization}
             onChange={(e) => handleMemberChange(index, 'specialization', e.target.value)}
-            placeholder="e.g. Computer Science"
+            placeholder="e.g. Bio-engineering"
           />
         </div>
 
-        <div className="input-group">
-          <label>&gt; CONTACT NUMBER_</label>
+        <div className="input-row">
+          <label>EMERGENCY FREQUENCY (PHONE):</label>
           <input 
             type="tel" 
             required
@@ -257,8 +273,8 @@ const RegistrationPage = () => {
           />
         </div>
 
-        <div className="input-group">
-          <label>&gt; EMAIL_</label>
+        <div className="input-row">
+          <label>COMMUNICATION LINK (EMAIL):</label>
           <input 
             type="email" 
             required
@@ -273,52 +289,48 @@ const RegistrationPage = () => {
   const totalSteps = numPlayers + 1;
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '2rem',
-      position: 'relative',
-      zIndex: 10
-    }}>
+    <div className="registration-wrapper">
       
       {/* Back to Base button */}
-      <button 
-        onClick={() => navigate('/')}
-        className="back-btn"
-      >
-        &lt; ABORT & RETURN TO BASE
+      <button onClick={() => navigate('/')} className="back-btn-doc">
+        &lt; ABORT AND INCINERATE DOCUMENT
       </button>
 
-      <div className="terminal-form">
-        {/* Terminal Header */}
-        <div className="terminal-header">
-          System Terminal v4.86 // Secure Link // Step {step} of {totalSteps}
+      <div className="document-container">
+        {/* Hazard Header */}
+        <div className="hazard-bar"></div>
+        
+        {/* Document Header */}
+        <div className="doc-header">
+          <div className="doc-meta">FORM-4B // DEPT OF BIO-RESEARCH // CLEARANCE LEVEL: OMEGA</div>
+          <h2 className="doc-title">CONFIDENTIAL PROJECT CLEARANCE</h2>
+          <div className="red-stamp">TOP SECRET</div>
         </div>
-
-        <h2 style={{ textAlign: 'center', marginBottom: '1rem', marginTop: '1rem', color: 'rgba(57, 255, 20, 0.9)' }}>
-          REGISTER SQUAD
-        </h2>
         
         {/* Progress Bar */}
-        <div className="progress-bg">
-          <div className="progress-bar" style={{ width: `${(step / totalSteps) * 100}%` }}></div>
+        <div className="doc-progress-container">
+           <div style={{fontSize: '0.9rem', fontWeight: 'bold', fontFamily: 'Courier New, monospace', marginBottom: '0.5rem'}}>
+             DOCUMENT PROGRESS: PAGE {step} OF {totalSteps}
+           </div>
+           <div className="doc-progress-bg">
+             <div className="doc-progress-bar" style={{ width: `${(step / totalSteps) * 100}%` }}></div>
+           </div>
         </div>
-        
+
         {error && (
-          <div style={{ color: '#ff3333', marginBottom: '1rem', fontFamily: 'var(--font-mono)', textAlign: 'center' }}>
-            [ERROR]: {error}
+          <div className="doc-error fade-in">
+            [DENIED]: {error}
           </div>
         )}
 
-        <form onSubmit={step === totalSteps ? handleSubmit : nextStep} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <form onSubmit={step === totalSteps ? handleSubmit : nextStep} style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
           
           {step === 1 && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.5s ease' }}>
-              <div className="input-group">
-                <label>&gt; SQUAD DESIGNATION (TEAM NAME)_</label>
+            <div className="form-section fade-in">
+              <h3 className="section-title">SECTION I: UNIT DESIGNATION</h3>
+              
+              <div className="input-row">
+                <label>RESEARCH UNIT IDENTIFIER (TEAM NAME):</label>
                 <input 
                   type="text" 
                   required
@@ -328,36 +340,26 @@ const RegistrationPage = () => {
                 />
               </div>
 
-              <div className="input-group">
-                <label>&gt; ASSIGNED SQUAD ID (TEAM NUMBER)_</label>
+              <div className="input-row">
+                <label>ASSIGNED CLEARANCE ID (TEAM NUMBER):</label>
                 <input 
                   type="text" 
                   value={teamNumber}
                   readOnly
-                  style={{ color: '#888', borderColor: '#444', cursor: 'not-allowed' }}
+                  className="readonly-input"
                 />
               </div>
 
-              <div className="input-group">
-                <label>&gt; NUMBER OF OPERATIVES_</label>
+              <div className="input-row">
+                <label>QUANTITY OF BIO-ASSETS (MEMBERS):</label>
                 <select 
                   value={numPlayers} 
                   onChange={(e) => setNumPlayers(parseInt(e.target.value))}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    borderBottom: '1px solid rgba(57, 255, 20, 0.5)',
-                    color: 'var(--color-accent)',
-                    padding: '0.5rem 0',
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: '1.2rem',
-                    outline: 'none',
-                    cursor: 'pointer'
-                  }}
+                  className="doc-select"
                 >
-                  <option value={3} style={{ background: '#002729' }}>3 OPERATIVES</option>
-                  <option value={4} style={{ background: '#002729' }}>4 OPERATIVES</option>
-                  <option value={5} style={{ background: '#002729' }}>5 OPERATIVES</option>
+                  <option value={3}>3 BIO-ASSETS</option>
+                  <option value={4}>4 BIO-ASSETS</option>
+                  <option value={5}>5 BIO-ASSETS</option>
                 </select>
               </div>
             </div>
@@ -365,151 +367,356 @@ const RegistrationPage = () => {
 
           {step > 1 && step <= totalSteps && renderMemberForm(step - 2)}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2rem' }}>
-            {step > 1 ? (
-              <button 
-                type="button" 
-                onClick={prevStep}
-                className="btn-outline"
-                disabled={isSubmitting}
-              >
-                [ BACK ]
-              </button>
-            ) : (
-              <div></div> // Empty div for flex spacing
-            )}
+          {step === totalSteps && (
+            <div className="signature-section fade-in">
+              <p style={{fontFamily: 'Courier New, monospace', fontSize: '0.9rem', lineHeight: '1.5', marginTop: '1rem'}}>
+                By sealing this document, the Research Unit accepts all terms of the 
+                Chernobyl Exclusion Zone protocol. Bio-assets proceed at their own risk. 
+                Any exposure to ionizing radiation or anomalous phenomena is the sole 
+                responsibility of the Unit.
+              </p>
+              <div style={{marginTop: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end'}}>
+                <div style={{ width: '250px', fontFamily: 'Courier New, monospace'}}>
+                  <div style={{ paddingBottom: '0.2rem', borderBottom: '2px solid #000', fontSize: '1.5rem', fontFamily: '"Brush Script MT", "Lucida Handwriting", cursive', color: '#000066', minHeight: '2.5rem', display: 'flex', alignItems: 'flex-end' }}>
+                    {members[0]?.name || ''}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', marginTop: '0.3rem', fontWeight: 'bold' }}>Signature (Lead Asset)</div>
+                </div>
+                <div style={{ width: '150px', fontFamily: 'Courier New, monospace'}}>
+                  <div style={{ paddingBottom: '0.2rem', borderBottom: '2px solid #000', fontSize: '1.1rem', color: '#000066', minHeight: '2.5rem', display: 'flex', alignItems: 'flex-end' }}>
+                    {new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase()}
+                  </div>
+                  <div style={{ fontSize: '0.8rem', marginTop: '0.3rem', fontWeight: 'bold' }}>Date</div>
+                </div>
+              </div>
+            </div>
+          )}
 
-            <button 
-              type="submit" 
-              className="btn-primary"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? '[ TRANSMITTING... ]' : (step === totalSteps ? '[ SUBMIT ENTRY ]' : '[ PROCEED ]')}
+          <div className="form-actions">
+            {step > 1 ? (
+              <button type="button" onClick={prevStep} className="btn-doc-secondary" disabled={isSubmitting}>
+                [ REVERT PAGE ]
+              </button>
+            ) : <div></div>}
+
+            <button type="submit" className="btn-doc-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'PROCESSING...' : (step === totalSteps ? 'AUTHORIZE & SEAL DOCUMENT' : 'AUTHORIZE NEXT PAGE')}
             </button>
           </div>
         </form>
+
+        <div className="hazard-bar" style={{ marginTop: '3rem' }}></div>
       </div>
+
       <style>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(10px); }
           to { opacity: 1; transform: translateY(0); }
         }
 
-        .back-btn {
+        .fade-in {
+          animation: fadeIn 0.5s ease forwards;
+        }
+
+        .registration-wrapper {
+          min-height: 100vh;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          padding: 2rem;
+          position: relative;
+          z-index: 100; /* Above vignette */
+        }
+
+        .back-btn-doc {
           position: absolute;
           top: 2rem;
           left: 2rem;
           background: transparent;
           border: none;
-          color: var(--color-accent);
-          font-family: var(--font-mono);
+          color: rgba(255, 255, 255, 0.7);
+          font-family: 'Courier New', Courier, monospace;
           font-size: 1rem;
+          font-weight: bold;
           cursor: pointer;
           text-transform: uppercase;
+          transition: color 0.3s ease;
         }
 
-        .terminal-form {
+        .back-btn-doc:hover {
+          color: #ff3333;
+        }
+
+        .document-container {
           width: 100%;
-          max-width: 600px;
-          padding: 3rem;
-          border: 2px solid rgba(57, 255, 20, 0.5);
-          border-radius: 5px;
-          background-color: #002729;
-          box-shadow: 0 0 30px rgba(57, 255, 20, 0.1);
+          max-width: 800px;
+          background-color: #fdfbf7;
+          background-image: radial-gradient(#e0dcd3 1px, transparent 1px);
+          background-size: 20px 20px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
           position: relative;
+          color: #1a1a1a;
+          overflow: hidden;
+          padding-bottom: 2rem;
         }
 
-        .terminal-header {
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          padding: 0.5rem;
-          background-color: rgba(57, 255, 20, 0.8);
-          color: #000;
-          font-weight: bold;
-          font-family: var(--font-mono);
-          text-align: center;
-          text-transform: uppercase;
-          font-size: 0.8rem;
-        }
-
-        .progress-bg {
+        .hazard-bar {
           width: 100%;
-          height: 4px;
-          background: rgba(255,255,255,0.1);
+          height: 15px;
+          background: repeating-linear-gradient(
+            45deg,
+            #ffcc00,
+            #ffcc00 15px,
+            #000000 15px,
+            #000000 30px
+          );
+        }
+
+        .doc-header {
+          padding: 3rem 4rem 1rem 4rem;
+          position: relative;
+          border-bottom: 3px double #1a1a1a;
           margin-bottom: 2rem;
-          position: relative;
         }
 
-        .progress-bar {
+        .doc-meta {
+          font-family: 'Courier New', Courier, monospace;
+          font-weight: bold;
+          font-size: 0.9rem;
+          margin-bottom: 1rem;
+          color: #444;
+        }
+
+        .doc-title {
+          font-family: 'Times New Roman', Times, serif;
+          font-size: 2.2rem;
+          font-weight: 900;
+          letter-spacing: 1px;
+          margin: 0;
+          text-transform: uppercase;
+        }
+
+        .red-stamp {
           position: absolute;
-          top: 0;
-          left: 0;
+          top: 2rem;
+          right: 3rem;
+          color: #cc0000;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 1.5rem;
+          font-weight: 900;
+          border: 4px solid #cc0000;
+          padding: 0.2rem 0.5rem;
+          transform: rotate(-15deg);
+          opacity: 0.8;
+          border-radius: 4px;
+        }
+
+        .doc-progress-container {
+          padding: 0 4rem;
+          margin-bottom: 2rem;
+        }
+
+        .doc-progress-bg {
+          width: 100%;
+          height: 8px;
+          background: #ccc;
+          border: 1px solid #1a1a1a;
+        }
+
+        .doc-progress-bar {
           height: 100%;
-          background: rgba(57, 255, 20, 0.8);
+          background: #1a1a1a;
           transition: width 0.3s ease;
         }
 
-        .input-group {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-        }
-
-        .input-group label {
-          font-family: var(--font-mono);
-          color: #888;
-        }
-
-        .input-group input {
-          background: transparent;
-          border: none;
-          border-bottom: 1px solid rgba(57, 255, 20, 0.5);
-          color: var(--color-text);
-          padding: 0.5rem 0;
-          font-family: var(--font-mono);
-          font-size: 1.2rem;
-          outline: none;
-        }
-
-        .input-group input:focus {
-          border-bottom-color: rgba(57, 255, 20, 1);
-        }
-
-        .btn-outline {
-          padding: 1rem 2rem;
-          background: transparent;
-          border: 1px solid rgba(155, 168, 168, 0.5);
-          color: var(--color-text);
-          font-family: var(--font-mono);
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-
-        .btn-outline:hover:not(:disabled) {
-          border-color: var(--color-text);
-        }
-
-        .btn-primary {
-          padding: 1rem 2rem;
-          background: transparent;
-          border: 1px solid rgba(57, 255, 20, 0.8);
-          color: rgba(57, 255, 20, 0.8);
-          font-family: var(--font-mono);
-          cursor: pointer;
-          transition: all 0.3s ease;
+        .doc-error {
+          margin: 0 4rem 1rem 4rem;
+          padding: 1rem;
+          background: #ffe6e6;
+          border-left: 5px solid #cc0000;
+          color: #cc0000;
+          font-family: 'Courier New', Courier, monospace;
           font-weight: bold;
         }
 
-        .btn-primary:hover:not(:disabled) {
-          background: rgba(57, 255, 20, 0.8);
-          color: #000;
+        form {
+          padding: 0 4rem;
         }
 
-        .btn-primary:disabled, .btn-outline:disabled {
+        .form-section {
+          display: flex;
+          flex-direction: column;
+          gap: 1.5rem;
+        }
+
+        .section-title {
+          font-family: 'Times New Roman', Times, serif;
+          font-size: 1.5rem;
+          border-bottom: 2px solid #1a1a1a;
+          padding-bottom: 0.5rem;
+          margin-bottom: 1rem;
+          font-weight: bold;
+        }
+
+        .input-row {
+          display: flex;
+          flex-direction: column;
+          gap: 0.3rem;
+        }
+
+        .input-row label {
+          font-family: 'Courier New', Courier, monospace;
+          font-weight: bold;
+          font-size: 0.95rem;
+          color: #333;
+        }
+
+        .input-row input {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid #1a1a1a;
+          padding: 0.5rem 0;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 1.2rem;
+          color: #000;
+          outline: none;
+          transition: border-bottom 0.2s ease;
+        }
+
+        .input-row input:focus {
+          border-bottom: 3px solid #1a1a1a;
+        }
+
+        .readonly-input {
+          color: #666 !important;
+          border-bottom: 1px dashed #666 !important;
+          background: rgba(0,0,0,0.05) !important;
+        }
+
+        .doc-select {
+          background: transparent;
+          border: 1px solid #1a1a1a;
+          padding: 0.5rem;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 1rem;
+          font-weight: bold;
+          color: #000;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .doc-select-underline {
+          background: transparent;
+          border: none;
+          border-bottom: 1px solid #1a1a1a;
+          padding: 0.5rem 0;
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 1.2rem;
+          color: #000;
+          outline: none;
+          cursor: pointer;
+          appearance: none;
+          -webkit-appearance: none;
+          border-radius: 0;
+        }
+
+        .doc-select option, .doc-select-underline option {
+          background: #fdfbf7;
+        }
+
+        .form-actions {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 2rem;
+          padding-top: 2rem;
+          border-top: 2px dashed #1a1a1a;
+        }
+
+        .btn-doc-primary {
+          background: #cc0000;
+          color: #fff;
+          border: 2px solid #990000;
+          padding: 0.8rem 1.5rem;
+          font-family: 'Courier New', Courier, monospace;
+          font-weight: bold;
+          font-size: 1rem;
+          cursor: pointer;
+          box-shadow: 2px 2px 0px #990000;
+          transition: all 0.1s ease;
+        }
+
+        .btn-doc-primary:hover:not(:disabled) {
+          transform: translate(2px, 2px);
+          box-shadow: 0px 0px 0px #990000;
+        }
+
+        .btn-doc-secondary {
+          background: transparent;
+          color: #1a1a1a;
+          border: 2px solid #1a1a1a;
+          padding: 0.8rem 1.5rem;
+          font-family: 'Courier New', Courier, monospace;
+          font-weight: bold;
+          font-size: 1rem;
+          cursor: pointer;
+          box-shadow: 2px 2px 0px #1a1a1a;
+          transition: all 0.1s ease;
+        }
+
+        .btn-doc-secondary:hover:not(:disabled) {
+          background: #e0dcd3;
+          transform: translate(2px, 2px);
+          box-shadow: 0px 0px 0px #1a1a1a;
+        }
+
+        .btn-doc-primary:disabled, .btn-doc-secondary:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+          .registration-wrapper { padding: 1rem; }
+          .back-btn-doc { 
+            position: relative; 
+            top: 0; 
+            left: 0; 
+            margin-bottom: 1rem; 
+            align-self: flex-start; 
+            font-size: 0.8rem;
+          }
+          .doc-header { padding: 1.5rem 1rem 1rem 1rem; }
+          .doc-title { font-size: 1.4rem; }
+          .doc-meta { font-size: 0.7rem; }
+          .red-stamp { 
+            top: 0.5rem; 
+            right: 0.5rem; 
+            font-size: 1rem; 
+            border-width: 2px; 
+            padding: 0.1rem 0.3rem;
+          }
+          .doc-progress-container, form { padding: 0 1rem; }
+          .doc-error { margin: 0 1rem 1rem 1rem; font-size: 0.9rem; }
+          
+          .signature-section > div:last-child {
+            flex-direction: column;
+            align-items: flex-start !important;
+            gap: 1.5rem;
+          }
+          .signature-section > div:last-child > div {
+            width: 100% !important;
+          }
+          
+          .form-actions {
+            flex-direction: column;
+            gap: 1rem;
+          }
+          .btn-doc-primary, .btn-doc-secondary {
+            width: 100%;
+            font-size: 0.9rem;
+          }
         }
       `}</style>
     </div>
