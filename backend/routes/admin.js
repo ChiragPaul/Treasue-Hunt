@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Team = require('../models/Team');
+const User = require('../models/User');
 
 // Stored securely as bcrypt hashes. The plain text is never visible.
 const READ_HASH = '$2b$10$4hz5z4ZXfGfms53P7bZRbuZ7LT8.AnsH76lUrDNcaucLTA/uPs.Ke'; // read access
@@ -69,8 +70,18 @@ router.post('/login', async (req, res) => {
 // @access  Private (Admin)
 router.get('/teams', verifyAdmin, async (req, res) => {
   try {
-    const teams = await Team.find().sort({ createdAt: -1 });
-    res.json(teams);
+    const teams = await Team.find().populate('members').sort({ createdAt: -1 });
+    
+    // Format to match what AdminDashboard expects
+    const formattedTeams = teams.map(t => ({
+      _id: t._id,
+      teamName: t.name,
+      teamNumber: t.teamNumber,
+      members: t.members,
+      createdAt: t.createdAt
+    }));
+
+    res.json(formattedTeams);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -91,6 +102,10 @@ router.delete('/teams/:id', verifyAdmin, async (req, res) => {
       return res.status(404).json({ msg: 'Team not found' });
     }
 
+    // Delete associated members first
+    await User.deleteMany({ team: req.params.id });
+    
+    // Then delete the team
     await Team.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Team removed' });
   } catch (err) {
@@ -118,15 +133,27 @@ router.put('/teams/:id', verifyAdmin, async (req, res) => {
       return res.status(404).json({ msg: 'Team not found' });
     }
 
-    // Optional: Add duplicate checking for edit as well if needed.
-    // For now, allow direct update of the team name and members array.
-    if (teamName) team.teamName = teamName;
+    if (teamName) team.name = teamName;
+    
     if (members && Array.isArray(members)) {
-      team.members = members;
+      for (const member of members) {
+        if (member._id) {
+          await User.findByIdAndUpdate(member._id, member);
+        }
+      }
     }
 
     await team.save();
-    res.json(team);
+    
+    const updatedTeam = await Team.findById(req.params.id).populate('members');
+    
+    res.json({
+      _id: updatedTeam._id,
+      teamName: updatedTeam.name,
+      teamNumber: updatedTeam.teamNumber,
+      members: updatedTeam.members,
+      createdAt: updatedTeam.createdAt
+    });
   } catch (err) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
