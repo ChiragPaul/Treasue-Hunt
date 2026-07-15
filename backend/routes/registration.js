@@ -127,7 +127,14 @@ router.post('/register', async (req, res) => {
     newTeam.members = userIds;
     await newTeam.save();
 
-    res.status(201).json({ msg: 'Registration successful', team: newTeam });
+    res.status(201).json({ 
+      msg: 'Registration successful', 
+      team: {
+        teamName: newTeam.name,
+        teamNumber: newTeam.teamNumber,
+        members: members
+      } 
+    });
   } catch (err) {
     console.error(err.message);
     res.status(500).json({ msg: 'Server Error' });
