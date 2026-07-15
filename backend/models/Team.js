@@ -1,29 +1,32 @@
 const mongoose = require('mongoose');
 
-const memberSchema = require('./Member');
-
-const teamSchema = new mongoose.Schema({
-  teamName: {
-    type: String,
-    required: true
+const teamSchema = new mongoose.Schema(
+  {
+    name: { type: String, required: true, unique: true },
+    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    currentClueIndex: { type: Number, default: 0 }, 
+    completedClues: [
+      {
+        clue: { type: mongoose.Schema.Types.ObjectId, ref: "Clue" },
+        completedAt: { type: Date, default: Date.now },
+        photoUrl: String,
+      },
+    ],
+    score: { type: Number, default: 0 },
+    startedAt: Date,
+    finishedAt: Date,
+    status: {
+      type: String,
+      enum: ["not_started", "in_progress", "finished", "disqualified"],
+      default: "not_started",
+    },
+    location: {
+      lat: Number,
+      lng: Number,
+      updatedAt: Date,
+    },
   },
-  teamNumber: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  members: {
-    type: [memberSchema],
-    validate: [arrayLimit, '{PATH} must have between 3 and 5 members']
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+  { timestamps: true }
+);
 
-function arrayLimit(val) {
-  return val.length >= 3 && val.length <= 5;
-}
-
-module.exports = mongoose.model('Team', teamSchema);
+module.exports = mongoose.model("Team", teamSchema);
