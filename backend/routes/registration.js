@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Team = require('../models/Team');
+const User = require('../models/User');
 
 // Validation regexes
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,7 +23,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Check if team name already exists
-    const existingTeamName = await Team.findOne({ teamName: new RegExp(`^${teamName}$`, 'i') });
+    const existingTeamName = await Team.findOne({ name: new RegExp(`^${teamName}$`, 'i') });
     if (existingTeamName) {
       return res.status(400).json({ msg: 'Team name is already taken.' });
     }
@@ -46,7 +47,7 @@ router.post('/register', async (req, res) => {
       const member = members[i];
       
       // Basic check
-      if (!member.registerNumber || !member.name || !member.email || !member.contactNumber) {
+      if (!member.registerNumber || !member.name || !member.email || !member.contactNumber || !member.yearOfGraduation || !member.course || !member.specialization) {
          return res.status(400).json({ msg: `Operative 0${i + 1} is missing required fields.` });
       }
 
@@ -84,30 +85,52 @@ router.post('/register', async (req, res) => {
     const regexRegNumbers = reqRegNumbers.map(num => new RegExp(`^${num}$`, 'i'));
     const regexEmails = reqEmails.map(e => new RegExp(`^${e}$`, 'i'));
 
-    const teamWithExistingMember = await Team.findOne({
+    const existingUser = await User.findOne({
       $or: [
-        { 'members.registerNumber': { $in: regexRegNumbers } },
-        { 'members.email': { $in: regexEmails } },
-        { 'members.contactNumber': { $in: reqPhones } }
+        { registerNumber: { $in: regexRegNumbers } },
+        { email: { $in: regexEmails } },
+        { contactNumber: { $in: reqPhones } }
       ]
     });
 
-    if (teamWithExistingMember) {
+    if (existingUser) {
       return res.status(400).json({ msg: `One or more members' register number, email, or contact number is already registered in another team.` });
     }
 
+    // Create the team first
     const newTeam = new Team({
-      teamName,
-      teamNumber,
-      members
+      name: teamName,
+      teamNumber
     });
 
+    await newTeam.save();
+
+    // Create the users
+    const userIds = [];
+    for (const member of members) {
+      const newUser = new User({
+        name: member.name,
+        email: member.email,
+        registerNumber: member.registerNumber,
+        yearOfGraduation: member.yearOfGraduation,
+        course: member.course,
+        specialization: member.specialization,
+        contactNumber: member.contactNumber,
+        role: "player",
+        team: newTeam._id
+      });
+      await newUser.save();
+      userIds.push(newUser._id);
+    }
+
+    // Update the team with user IDs
+    newTeam.members = userIds;
     await newTeam.save();
 
     res.status(201).json({ msg: 'Registration successful', team: newTeam });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
@@ -120,14 +143,14 @@ router.post('/validate-team', async (req, res) => {
     if (!teamName) {
       return res.status(400).json({ msg: 'Team name is required.' });
     }
-    const existingTeam = await Team.findOne({ teamName: new RegExp(`^${teamName}$`, 'i') });
+    const existingTeam = await Team.findOne({ name: new RegExp(`^${teamName}$`, 'i') });
     if (existingTeam) {
       return res.status(400).json({ msg: 'Team name is already taken. Please choose another.' });
     }
     res.status(200).json({ msg: 'Team name is available.' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
@@ -142,31 +165,23 @@ router.post('/validate-member', async (req, res) => {
       return res.status(400).json({ msg: 'Missing fields for validation.' });
     }
 
-    const existingMember = await Team.findOne({
+    const existingMember = await User.findOne({
       $or: [
-        { 'members.email': new RegExp(`^${email}$`, 'i') },
-        { 'members.contactNumber': contactNumber },
-        { 'members.registerNumber': new RegExp(`^${registerNumber}$`, 'i') }
+        { email: new RegExp(`^${email}$`, 'i') },
+        { contactNumber: contactNumber },
+        { registerNumber: new RegExp(`^${registerNumber}$`, 'i') }
       ]
     });
 
     if (existingMember) {
-      const conflict = existingMember.members.find(m => 
-        m.email.toLowerCase() === email.toLowerCase() || 
-        m.contactNumber === contactNumber ||
-        m.registerNumber.toLowerCase() === registerNumber.toLowerCase()
-      );
-      
-      if (conflict) {
-        if (conflict.email.toLowerCase() === email.toLowerCase()) {
-          return res.status(400).json({ msg: 'Email is already registered.' });
-        }
-        if (conflict.contactNumber === contactNumber) {
-          return res.status(400).json({ msg: 'Contact number is already registered.' });
-        }
-        if (conflict.registerNumber.toLowerCase() === registerNumber.toLowerCase()) {
-          return res.status(400).json({ msg: 'Register number is already registered.' });
-        }
+      if (existingMember.email.toLowerCase() === email.toLowerCase()) {
+        return res.status(400).json({ msg: 'Email is already registered.' });
+      }
+      if (existingMember.contactNumber === contactNumber) {
+        return res.status(400).json({ msg: 'Contact number is already registered.' });
+      }
+      if (existingMember.registerNumber.toLowerCase() === registerNumber.toLowerCase()) {
+        return res.status(400).json({ msg: 'Register number is already registered.' });
       }
       return res.status(400).json({ msg: 'Member details conflict with an existing registration.' });
     }
@@ -174,7 +189,7 @@ router.post('/validate-member', async (req, res) => {
     res.status(200).json({ msg: 'Member details are valid.' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    res.status(500).json({ msg: 'Server Error' });
   }
 });
 
